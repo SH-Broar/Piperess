@@ -63,6 +63,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 const int bs = 50;
 POINT connected[100] = { 0 };
+int startRotation;
 static map Map[10][14];
 static int connectedLine = 0;
 BOOL stuckWall = FALSE;
@@ -74,7 +75,32 @@ BOOL isConnected(int dir,int x,int y) // 0¿Þ 1À§ 2¿ì 3¾Æ·¡ // rotation
 	switch (dir)
 	{
 	case 0:
-		if (x > 0 && Map[x - 1][y].check && (Map[x - 1][y].index == 1 || Map[x - 1][y].index == 3 || Map[x - 1][y].index == 4))
+		if (x == 0)
+		{
+			if (stuckWall == TRUE)
+				return TRUE;
+
+			stuckWall = TRUE;
+			switch (startRotation)
+			{
+			case 0:
+			case 3:
+				return (isConnected(1, connected[0].x, connected[0].y));
+				break;
+			case 1:
+				return (isConnected(0, connected[0].x, connected[0].y));
+				break;
+			case 2:
+				return (isConnected(2, connected[0].x, connected[0].y));
+				break;
+			case 4:
+			case 5:
+				return (isConnected(3, connected[0].x, connected[0].y));
+				break;
+			}
+			
+		}
+		if (Map[x - 1][y].check && (Map[x - 1][y].index == 1 || Map[x - 1][y].index == 3 || Map[x - 1][y].index == 4))
 		{
 			connected[connectedLine].x = x - 1;
 			connected[connectedLine].y = y;
@@ -101,7 +127,32 @@ BOOL isConnected(int dir,int x,int y) // 0¿Þ 1À§ 2¿ì 3¾Æ·¡ // rotation
 		}
 		break;
 	case 1:
-		if (y > 0 && Map[x][y-1].check && (Map[x][y-1].index == 2 || Map[x][y-1].index == 4 || Map[x][y-1].index == 5))
+		if (y == 0)
+		{
+			if (stuckWall == TRUE)
+				return TRUE;
+
+			stuckWall = TRUE;
+			switch (startRotation)
+			{
+			case 0:
+			case 3:
+				return (isConnected(1, connected[0].x, connected[0].y));
+				break;
+			case 1:
+				return (isConnected(0, connected[0].x, connected[0].y));
+				break;
+			case 2:
+				return (isConnected(2, connected[0].x, connected[0].y));
+				break;
+			case 4:
+			case 5:
+				return (isConnected(3, connected[0].x, connected[0].y));
+				break;
+			}
+
+		}
+		if (Map[x][y-1].check && (Map[x][y-1].index == 2 || Map[x][y-1].index == 4 || Map[x][y-1].index == 5))
 		{
 			connected[connectedLine].x = x;
 			connected[connectedLine].y = y - 1;
@@ -128,7 +179,32 @@ BOOL isConnected(int dir,int x,int y) // 0¿Þ 1À§ 2¿ì 3¾Æ·¡ // rotation
 		}
 		break;
 	case 2:
-		if (x < 9 && Map[x + 1][y].check && (Map[x + 1][y].index == 1 || Map[x + 1][y].index == 0 || Map[x + 1][y].index == 5))
+		if (x == 9)
+		{
+			if (stuckWall == TRUE)
+				return TRUE;
+
+			stuckWall = TRUE;
+			switch (startRotation)
+			{
+			case 0:
+			case 3:
+				return (isConnected(1, connected[0].x, connected[0].y));
+				break;
+			case 1:
+				return (isConnected(0, connected[0].x, connected[0].y));
+				break;
+			case 2:
+				return (isConnected(2, connected[0].x, connected[0].y));
+				break;
+			case 4:
+			case 5:
+				return (isConnected(3, connected[0].x, connected[0].y));
+				break;
+			}
+
+		}
+		if (Map[x + 1][y].check && (Map[x + 1][y].index == 1 || Map[x + 1][y].index == 0 || Map[x + 1][y].index == 5))
 		{
 			connected[connectedLine].x = x + 1;
 			connected[connectedLine].y = y;
@@ -155,7 +231,32 @@ BOOL isConnected(int dir,int x,int y) // 0¿Þ 1À§ 2¿ì 3¾Æ·¡ // rotation
 		}
 		break;
 	case 3:
-		if (y < 13 && Map[x][y + 1].check && (Map[x][y +1].index == 2 || Map[x][y +1].index == 0 || Map[x][y + 1].index == 3))
+		if (y == 13)
+		{
+			if (stuckWall == TRUE)
+				return TRUE;
+
+			stuckWall = TRUE;
+			switch (startRotation)
+			{
+			case 0:
+			case 3:
+				return (isConnected(1, connected[0].x, connected[0].y));
+				break;
+			case 1:
+				return (isConnected(0, connected[0].x, connected[0].y));
+				break;
+			case 2:
+				return (isConnected(2, connected[0].x, connected[0].y));
+				break;
+			case 4:
+			case 5:
+				return (isConnected(3, connected[0].x, connected[0].y));
+				break;
+			}
+
+		}
+		if (Map[x][y + 1].check && (Map[x][y +1].index == 2 || Map[x][y +1].index == 0 || Map[x][y + 1].index == 3))
 		{
 			connected[connectedLine].x = x;
 			connected[connectedLine].y = y + 1;
@@ -369,6 +470,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					}
 					connected[0].x = dropBlock.xpos;
 					connected[0].y = dropBlock.ypos;
+					startRotation = dropBlock.rotation;
+					stuckWall = FALSE;
 					if (isConnected(0, dropBlock.xpos, dropBlock.ypos))
 					{
 						for (int i = 0; i < connectedLine; i++)
@@ -405,6 +508,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					}
 					connected[0].x = dropBlock.xpos;
 					connected[0].y = dropBlock.ypos;
+					startRotation = dropBlock.rotation;
+					stuckWall = FALSE;
 					if (isConnected(2, dropBlock.xpos, dropBlock.ypos))
 					{
 						for (int i = 0; i < connectedLine; i++)
@@ -448,6 +553,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				case 5:
 					connected[0].x = dropBlock.xpos;
 					connected[0].y = dropBlock.ypos;
+					startRotation = dropBlock.rotation;
+					stuckWall = FALSE;
 					if (isConnected(0, dropBlock.xpos, dropBlock.ypos))
 					{
 						for (int i = 0; i < connectedLine; i++)
@@ -463,6 +570,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				case 4:
 					connected[0].x = dropBlock.xpos;
 					connected[0].y = dropBlock.ypos;
+					startRotation = dropBlock.rotation;
+					stuckWall = FALSE;
 					if (isConnected(2, dropBlock.xpos, dropBlock.ypos))
 					{
 						for (int i = 0; i < connectedLine; i++)
