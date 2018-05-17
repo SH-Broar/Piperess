@@ -466,8 +466,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					{
 						connected[i].x = 0;
 						connected[i].y = 0;
-						connectedLine = 0;
 					}
+					connectedLine = 0;
 					connected[0].x = dropBlock.xpos;
 					connected[0].y = dropBlock.ypos;
 					startRotation = dropBlock.rotation;
@@ -504,8 +504,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					{
 						connected[i].x = 0;
 						connected[i].y = 0;
-						connectedLine = 0;
 					}
+					connectedLine = 0;
 					connected[0].x = dropBlock.xpos;
 					connected[0].y = dropBlock.ypos;
 					startRotation = dropBlock.rotation;
@@ -555,6 +555,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					connected[0].y = dropBlock.ypos;
 					startRotation = dropBlock.rotation;
 					stuckWall = FALSE;
+					connectedLine = 0;
 					if (isConnected(0, dropBlock.xpos, dropBlock.ypos))
 					{
 						for (int i = 0; i < connectedLine; i++)
@@ -562,7 +563,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							Map[connected[i].x][connected[i].y].check = 0;
 							Map[connected[i].x][connected[i].y].index = 0;
 						}
-						connectedLine = 0;
+						for (int i = 9; i >= 0; i--)
+						{
+							for (int j = 12; j >= 0; j--)
+							{
+								while (j < 13 && Map[i][j].check == 1 && Map[i][j + 1].check == 0)
+								{
+									Map[i][j + 1].check = Map[i][j].check;
+									Map[i][j].check = 0;
+									Map[i][j + 1].index = Map[i][j].index;
+									Map[i][j + 1].x = Map[i][j].x;
+									Map[i][j + 1].y = Map[i][j].y;
+									j++;
+									Sleep(10);
+								}
+							}
+						}
 					}
 					break;
 				case 1:
@@ -572,6 +588,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 					connected[0].y = dropBlock.ypos;
 					startRotation = dropBlock.rotation;
 					stuckWall = FALSE;
+					connectedLine = 0;
 					if (isConnected(2, dropBlock.xpos, dropBlock.ypos))
 					{
 						for (int i = 0; i < connectedLine; i++)
@@ -579,7 +596,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 							Map[connected[i].x][connected[i].y].check = 0;
 							Map[connected[i].x][connected[i].y].index = 0;
 						}
-						connectedLine = 0;
+						for (int i = 9; i >= 0; i--)
+						{
+							for (int j = 12; j >= 0; j--)
+							{
+								while (j < 13 && Map[i][j].check == 1 && Map[i][j + 1].check == 0)
+								{
+									Map[i][j + 1].check = Map[i][j].check;
+									Map[i][j].check = 0;
+									Map[i][j + 1].index = Map[i][j].index;
+									Map[i][j + 1].x = Map[i][j].x;
+									Map[i][j + 1].y = Map[i][j].y;
+									j++;
+									Sleep(10);
+								}
+							}
+						}
 					}
 					break;
 				}
