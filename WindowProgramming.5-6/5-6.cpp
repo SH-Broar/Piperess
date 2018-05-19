@@ -66,9 +66,10 @@ POINT connected[100] = { 0 };
 int startRotation;
 static map Map[10][14];
 static int connectedLine = 0;
+static int sort = 0;
 BOOL stuckWall = FALSE;
 
-BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation 
+BOOL isConnected(int dir, int x, int y) // 0왼 1위 2우 3아래 // rotation 
 {
 	BOOL c;
 	connectedLine++;
@@ -78,9 +79,17 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 		if (x == 0)
 		{
 			if (stuckWall == TRUE)
-				return TRUE;
+			{
 
+				return TRUE;
+			}
+			else
+			{
+				if (sort == 0)
+					sort = connectedLine;
+			}
 			stuckWall = TRUE;
+			connectedLine--;
 			switch (startRotation)
 			{
 			case 0:
@@ -98,7 +107,7 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 				return (isConnected(3, connected[0].x, connected[0].y));
 				break;
 			}
-			
+
 		}
 		if (Map[x - 1][y].check && (Map[x - 1][y].index == 1 || Map[x - 1][y].index == 3 || Map[x - 1][y].index == 4))
 		{
@@ -130,9 +139,16 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 		if (y == 0)
 		{
 			if (stuckWall == TRUE)
+			{
 				return TRUE;
-
+			}
+			else
+			{
+				if (sort == 0)
+					sort = connectedLine;
+			}
 			stuckWall = TRUE;
+			connectedLine--;
 			switch (startRotation)
 			{
 			case 0:
@@ -152,7 +168,7 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 			}
 
 		}
-		if (Map[x][y-1].check && (Map[x][y-1].index == 2 || Map[x][y-1].index == 4 || Map[x][y-1].index == 5))
+		if (Map[x][y - 1].check && (Map[x][y - 1].index == 2 || Map[x][y - 1].index == 4 || Map[x][y - 1].index == 5))
 		{
 			connected[connectedLine].x = x;
 			connected[connectedLine].y = y - 1;
@@ -160,7 +176,7 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 			{
 				return TRUE;
 			}
-			switch (Map[x][y-1].index) //imageIndex
+			switch (Map[x][y - 1].index) //imageIndex
 			{
 			case 2:
 				c = isConnected(1, x, y - 1);
@@ -182,9 +198,16 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 		if (x == 9)
 		{
 			if (stuckWall == TRUE)
+			{
 				return TRUE;
-
+			}
+			else
+			{
+				if (sort == 0)
+					sort = connectedLine;
+			}
 			stuckWall = TRUE;
+			connectedLine--;
 			switch (startRotation)
 			{
 			case 0:
@@ -234,9 +257,16 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 		if (y == 13)
 		{
 			if (stuckWall == TRUE)
+			{
 				return TRUE;
-
+			}
+			else
+			{
+				if (sort == 0)
+					sort = connectedLine;
+			}
 			stuckWall = TRUE;
+			connectedLine--;
 			switch (startRotation)
 			{
 			case 0:
@@ -256,7 +286,7 @@ BOOL isConnected(int dir,int x,int y) // 0왼 1위 2우 3아래 // rotation
 			}
 
 		}
-		if (Map[x][y + 1].check && (Map[x][y +1].index == 2 || Map[x][y +1].index == 0 || Map[x][y + 1].index == 3))
+		if (Map[x][y + 1].check && (Map[x][y + 1].index == 2 || Map[x][y + 1].index == 0 || Map[x][y + 1].index == 3))
 		{
 			connected[connectedLine].x = x;
 			connected[connectedLine].y = y + 1;
@@ -294,8 +324,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	static HBITMAP hBitmap, h2Bitmap, oldBit1, oldBit2;
 	static RECT clientRECT;
 
+	HBRUSH hBrush, oldBrush;
+	static RECT colorframe;
+
 	HBITMAP blocks[6];
+	HBITMAP explode[3];
 	static int x = 367;
+	static int speeder = 0;
+	static int crack;
 	static Block dropBlock;
 	static int xpos = 5;
 	static int ypos = 0;
@@ -303,6 +339,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	static int count = 0;
 	static int nextBlock;
 	static int Mapcount[20] = { 0 };
+	static int animTick;
+
+
 	switch (iMessage)
 	{
 	case WM_CREATE:
@@ -312,6 +351,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		dropBlock.ypos = 0;
 		dropBlock.rotation = rand() % 6;
 		nextBlock = rand() % 6;
+		animTick = 0;
 		for (int i = 0; i < 14; ++i)
 		{
 			for (int j = 0; j < 10; ++j)
@@ -338,6 +378,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		blocks[4] = LoadBitmap(g_hInst, MAKEINTRESOURCE(105));
 		blocks[5] = LoadBitmap(g_hInst, MAKEINTRESOURCE(106));
 
+		explode[0] = LoadBitmap(g_hInst, MAKEINTRESOURCE(107));
+		explode[1] = LoadBitmap(g_hInst, MAKEINTRESOURCE(108));
+		explode[2] = LoadBitmap(g_hInst, MAKEINTRESOURCE(109));
+
 		oldBit1 = (HBITMAP)SelectObject(memDC, hBitmap);
 		oldBit2 = (HBITMAP)SelectObject(mem2DC, NULL);
 		//---------------------------------------
@@ -353,14 +397,124 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			MoveToEx(memDC, clientRECT.right / 2 - 250, bs * (i + 1), NULL);
 			LineTo(memDC, clientRECT.right / 2 + 250, bs * (i + 1));
 		}
-		//---------------------------------------
+		//-----------------------------------------
 		(HBITMAP)SelectObject(mem2DC, blocks[dropBlock.rotation]);
 		TransparentBlt(memDC, dropBlock.x, dropBlock.y, bs, bs, mem2DC, 0, 0, bs, bs, RGB(255, 255, 255));
 		SelectObject(mem2DC, NULL);
 		(HBITMAP)SelectObject(mem2DC, blocks[nextBlock]);
 		TransparentBlt(memDC, clientRECT.right / 2 + 280, 30, bs, bs, mem2DC, 0, 0, bs, bs, RGB(255, 255, 255));
 		SelectObject(mem2DC, NULL);
-		//----------------
+		//-----------------------------------------
+		if (animTick != 0)
+		{
+			if (animTick / 20 >= connectedLine)
+			{
+				animTick = 0;
+				KillTimer(hWnd, 2);
+				SetTimer(hWnd, 1, 500 - speeder, NULL);
+				/*for (int i = 0; i < connectedLine; i++)
+				{
+					Map[connected[i].x][connected[i].y].check = 0;
+					Map[connected[i].x][connected[i].y].index = 0;
+				}*/
+				for (int i = 9; i >= 0; i--)
+				{
+					for (int j = 12; j >= 0; j--)
+					{
+						while (j < 13 && Map[i][j].check == TRUE && Map[i][j + 1].check == 0)
+						{
+							Map[i][j + 1].check = Map[i][j].check;
+							Map[i][j].check = 0;
+							Map[i][j + 1].index = Map[i][j].index;
+							Map[i][j + 1].x = Map[i][j].x;
+							Map[i][j + 1].y = Map[i][j].y;
+							j++;
+						}
+					}
+				}
+				/*for (int i = 0; i < 10; ++i)
+				{
+					for (int j = 0; j < 14; ++j)
+					{
+						if (Map[i][j].check)
+						{
+							connectedLine = 0;
+							sort = 0;
+							connected[0].x = i;
+							connected[0].y = j;
+							startRotation = Map[i][j].index;
+							stuckWall = FALSE;
+							if (Map[i][j].index == 1 || Map[i][j].index == 3 || Map[i][j].index == 4)
+								crack = 0;
+							else if (Map[i][j].index == 0 || Map[i][j].index == 5)
+								crack = 2;
+							else
+								continue;
+							if (isConnected(crack, i, j))
+							{
+								for (int i = 0; i < connectedLine; i++)
+								{
+									Map[connected[i].x][connected[i].y].check = 0;
+									Map[connected[i].x][connected[i].y].index = 0;
+								}
+								for (int i = 9; i >= 0; i--)
+								{
+									for (int j = 12; j >= 0; j--)
+									{
+										while (j < 13 && Map[i][j].check == TRUE && Map[i][j + 1].check == 0)
+										{
+											Map[i][j + 1].check = Map[i][j].check;
+											Map[i][j].check = 0;
+											Map[i][j + 1].index = Map[i][j].index;
+											Map[i][j + 1].x = Map[i][j].x;
+											Map[i][j + 1].y = Map[i][j].y;
+											j++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}*/
+				//연쇄 망함
+			}
+			else
+			{
+				if (animTick / 10 < connectedLine)
+				{
+
+					colorframe.left = clientRECT.right / 2 - 250 + bs * connected[animTick / 10].x;
+					colorframe.right = clientRECT.right / 2 - 200 + bs * connected[animTick / 10].x;
+					colorframe.top = bs * connected[animTick / 10].y;
+					colorframe.bottom = 50 + bs * connected[animTick / 10].y;
+
+					hBrush = CreateSolidBrush(RGB(255, 0, 0));
+					oldBrush = (HBRUSH)SelectObject(memDC, hBrush);
+					Rectangle(memDC, colorframe.left, colorframe.top, colorframe.right, colorframe.bottom);
+					SelectObject(memDC, oldBrush);
+					DeleteObject(hBrush);
+
+				}
+				else
+				{
+					colorframe.left = clientRECT.right / 2 - 250 + bs * connected[(animTick - connectedLine * 10) / 10].x;
+					colorframe.right = clientRECT.right / 2 - 200 + bs * connected[(animTick - connectedLine * 10) / 10].x;
+					colorframe.top = bs * connected[(animTick - connectedLine * 10) / 10].y;
+					colorframe.bottom = 50 + bs * connected[(animTick - connectedLine * 10) / 10].y;
+
+					(HBITMAP)SelectObject(mem2DC, explode[animTick % 3]);
+					TransparentBlt(memDC, colorframe.left, colorframe.top, bs, bs, mem2DC, 0, 0, 100, 100, RGB(0, 255, 0));
+					if ((animTick % 10 == 1))
+					{
+						Map[connected[(animTick - connectedLine * 10) / 10].x][connected[(animTick - connectedLine * 10) / 10].y].check = 0;
+						Map[connected[(animTick - connectedLine * 10) / 10].x][connected[(animTick - connectedLine * 10) / 10].y].index = 0;
+
+					}
+				}
+			}
+		}
+		//-----------------------------------------
+
 		for (int i = 0; i < 10; ++i)
 		{
 			for (int j = 0; j < 14; ++j)
@@ -380,6 +534,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		{
 			DeleteObject(blocks[i]);
 		}
+		for (int i = 0; i < 3; ++i)
+		{
+			DeleteObject(explode[i]);
+		}
+
 		DeleteObject(hBitmap);
 		DeleteDC(memDC);
 		DeleteDC(mem2DC);
@@ -411,7 +570,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case VK_DOWN:
-			if (dropBlock.ypos < 12 && Map[dropBlock.xpos][dropBlock.ypos+2].check != 1)
+			if (dropBlock.ypos < 12 && Map[dropBlock.xpos][dropBlock.ypos + 2].check != 1)
 			{
 				dropBlock.y += bs;
 				dropBlock.ypos += 1;
@@ -446,183 +605,103 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		break;
 		}
 	case WM_CHAR:
-
+		switch (wParam)
+		{
+		case 's':
+			if (!KillTimer(hWnd, 1))
+			{
+				if (speeder < 450)
+					SetTimer(hWnd, 1, 500 - speeder, NULL);
+			}
+			break;
+		case 'q':
+			PostQuitMessage(0);
+			break;
+		}
 		break;
 	case WM_TIMER:
 		switch (wParam)
 		{
 		case 1:
+		{
+			if (speeder < 450)
+			{
+
+				if (speeder % 14 == 1)
+				{
+					speeder += 3;
+					KillTimer(hWnd, 1);
+					SetTimer(hWnd, 1, 500 - speeder, NULL);
+				}
+			}
 			dropBlock.y += 50;
 			dropBlock.ypos += 1;
-			if (Map[dropBlock.xpos][dropBlock.ypos+1].check)
+			if (Map[dropBlock.xpos][dropBlock.ypos + 1].check || dropBlock.ypos == 13)
 			{
-				Map[dropBlock.xpos][dropBlock.ypos].check = TRUE;
-				Map[dropBlock.xpos][dropBlock.ypos].index = dropBlock.rotation;
-				switch (dropBlock.rotation)
+				if (dropBlock.ypos == 13)
 				{
-				case 0:
-				case 5:
-					for (int i = 0; i < 100; i++)
-					{
-						connected[i].x = 0;
-						connected[i].y = 0;
-					}
-					connectedLine = 0;
-					connected[0].x = dropBlock.xpos;
-					connected[0].y = dropBlock.ypos;
-					startRotation = dropBlock.rotation;
-					stuckWall = FALSE;
-					if (isConnected(0, dropBlock.xpos, dropBlock.ypos))
-					{
-						for (int i = 0; i < connectedLine; i++)
-						{
-							Map[connected[i].x][connected[i].y].check = 0;
-							Map[connected[i].x][connected[i].y].index = 0;
-						}
-						for (int i = 9; i >= 0; i--)
-						{
-							for (int j = 12; j >= 0; j--)
-							{
-								while (j < 13 && Map[i][j].check == 1 && Map[i][j + 1].check == 0)
-								{
-									Map[i][j + 1].check = Map[i][j].check;
-									Map[i][j].check = 0;
-									Map[i][j + 1].index = Map[i][j].index;
-									Map[i][j+1].x = Map[i][j].x;
-									Map[i][j + 1].y = Map[i][j].y;
-									j++;
-									Sleep(10);
-								}
-							}
-						}
-					}
-					break;
-				case 1:
-				case 3:
-				case 4:
-					for (int i = 0; i < 100; i++)
-					{
-						connected[i].x = 0;
-						connected[i].y = 0;
-					}
-					connectedLine = 0;
-					connected[0].x = dropBlock.xpos;
-					connected[0].y = dropBlock.ypos;
-					startRotation = dropBlock.rotation;
-					stuckWall = FALSE;
-					if (isConnected(2, dropBlock.xpos, dropBlock.ypos))
-					{
-						for (int i = 0; i < connectedLine; i++)
-						{
-							Map[connected[i].x][connected[i].y].check = 0;
-							Map[connected[i].x][connected[i].y].index = 0;
-						}
-						for (int i = 9; i >= 0; i--)
-						{
-							for (int j = 12; j >= 0; j--)
-							{
-								while (j < 13 && Map[i][j].check == 1 && Map[i][j + 1].check == 0)
-								{
-									Map[i][j + 1].check = Map[i][j].check;
-									Map[i][j].check = 0;
-									Map[i][j + 1].index = Map[i][j].index;
-									Map[i][j + 1].x = Map[i][j].x;
-									Map[i][j + 1].y = Map[i][j].y;
-									j++;
-									Sleep(10);
-								}
-							}
-						}
-					}
-					break;
+					Map[dropBlock.xpos][13].check = TRUE;
+					Map[dropBlock.xpos][13].index = dropBlock.rotation;
 				}
-				dropBlock.x = x;
-				dropBlock.y = y;
-				dropBlock.xpos = 5;
-				dropBlock.ypos = 0;
-				dropBlock.rotation = nextBlock;
-				nextBlock = rand() % 6;
-			}
-			if (dropBlock.ypos == 13)
-			{
-				Map[dropBlock.xpos][13].check = TRUE;
-				Map[dropBlock.xpos][13].index = dropBlock.rotation;
-				switch (dropBlock.rotation)
+				else
 				{
-				case 0:
-				case 5:
-					connected[0].x = dropBlock.xpos;
-					connected[0].y = dropBlock.ypos;
-					startRotation = dropBlock.rotation;
-					stuckWall = FALSE;
-					connectedLine = 0;
-					if (isConnected(0, dropBlock.xpos, dropBlock.ypos))
-					{
-						for (int i = 0; i < connectedLine; i++)
-						{
-							Map[connected[i].x][connected[i].y].check = 0;
-							Map[connected[i].x][connected[i].y].index = 0;
-						}
-						for (int i = 9; i >= 0; i--)
-						{
-							for (int j = 12; j >= 0; j--)
-							{
-								while (j < 13 && Map[i][j].check == 1 && Map[i][j + 1].check == 0)
-								{
-									Map[i][j + 1].check = Map[i][j].check;
-									Map[i][j].check = 0;
-									Map[i][j + 1].index = Map[i][j].index;
-									Map[i][j + 1].x = Map[i][j].x;
-									Map[i][j + 1].y = Map[i][j].y;
-									j++;
-									Sleep(10);
-								}
-							}
-						}
-					}
-					break;
-				case 1:
-				case 3:
-				case 4:
-					connected[0].x = dropBlock.xpos;
-					connected[0].y = dropBlock.ypos;
-					startRotation = dropBlock.rotation;
-					stuckWall = FALSE;
-					connectedLine = 0;
-					if (isConnected(2, dropBlock.xpos, dropBlock.ypos))
-					{
-						for (int i = 0; i < connectedLine; i++)
-						{
-							Map[connected[i].x][connected[i].y].check = 0;
-							Map[connected[i].x][connected[i].y].index = 0;
-						}
-						for (int i = 9; i >= 0; i--)
-						{
-							for (int j = 12; j >= 0; j--)
-							{
-								while (j < 13 && Map[i][j].check == 1 && Map[i][j + 1].check == 0)
-								{
-									Map[i][j + 1].check = Map[i][j].check;
-									Map[i][j].check = 0;
-									Map[i][j + 1].index = Map[i][j].index;
-									Map[i][j + 1].x = Map[i][j].x;
-									Map[i][j + 1].y = Map[i][j].y;
-									j++;
-									Sleep(10);
-								}
-							}
-						}
-					}
-					break;
+					Map[dropBlock.xpos][dropBlock.ypos].check = TRUE;
+					Map[dropBlock.xpos][dropBlock.ypos].index = dropBlock.rotation;
 				}
-				dropBlock.x = x;
-				dropBlock.y = y;
-				dropBlock.xpos = 5;
-				dropBlock.ypos = 0;
-				dropBlock.rotation = nextBlock;
-				nextBlock = rand() % 6;
-			}
 
+				for (int i = 0; i < 100; i++)
+				{
+					connected[i].x = 0;
+					connected[i].y = 0;
+				}
+				connectedLine = 0;
+				sort = 0;
+				connected[0].x = dropBlock.xpos;
+				connected[0].y = dropBlock.ypos;
+				startRotation = dropBlock.rotation;
+				stuckWall = FALSE;
+				if (dropBlock.rotation == 1 || dropBlock.rotation == 3 || dropBlock.rotation == 4)
+					crack = 2;
+				else
+					crack = 0;
+				if (isConnected(crack, dropBlock.xpos, dropBlock.ypos))
+				{
+					if (sort > 1)
+					{
+						for (int i = 0; i < sort; i++)
+						{
+							connected[connectedLine + i].x = connected[i].x;
+							connected[connectedLine + i].y = connected[i].y;
+						}
+						for (int i = sort; i < connectedLine; i++)
+						{
+							connected[i - sort].x = connected[connectedLine - i + sort - 1].x;
+							connected[i - sort].y = connected[connectedLine - i + sort - 1].y;
+						}
+						for (int i = connectedLine; i < connectedLine + sort; i++)
+						{
+							connected[connectedLine - sort + i - connectedLine].x = connected[i].x;
+							connected[connectedLine - sort + i - connectedLine].y = connected[i].y;
+						}
+					}
+
+					KillTimer(hWnd, 1);
+					SetTimer(hWnd, 2, 10, NULL);
+
+				}
+
+				dropBlock.x = x;
+				dropBlock.y = y;
+				dropBlock.xpos = 5;
+				dropBlock.ypos = 0;
+				dropBlock.rotation = nextBlock;
+				nextBlock = rand() % 6;
+			}
+			InvalidateRect(hWnd, NULL, false);
+			break;
+		}
+		case 2:
+			animTick++;
 			InvalidateRect(hWnd, NULL, false);
 			break;
 		}
@@ -630,7 +709,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-		
+
 	default:
 		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 		//case에서 정의되지 않은 메시지는 커널이 처리하도록 메시지 전달
