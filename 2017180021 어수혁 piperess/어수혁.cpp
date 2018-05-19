@@ -340,7 +340,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	static int nextBlock;
 	static int Mapcount[20] = { 0 };
 	static int animTick;
-
+	static int edge;
 
 	switch (iMessage)
 	{
@@ -352,6 +352,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		dropBlock.rotation = rand() % 6;
 		nextBlock = rand() % 6;
 		animTick = 0;
+		edge = 13;
 		for (int i = 0; i < 14; ++i)
 		{
 			for (int j = 0; j < 10; ++j)
@@ -397,6 +398,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			MoveToEx(memDC, clientRECT.right / 2 - 250, bs * (i + 1), NULL);
 			LineTo(memDC, clientRECT.right / 2 + 250, bs * (i + 1));
 		}
+		//-----------------------------------------
+		edge = -1;
+		for (int i = dropBlock.ypos; i < 14; i++)
+		{
+			if (Map[dropBlock.xpos][i].check == FALSE)
+				edge = i;
+		}
+
+		hBrush = CreateSolidBrush(RGB(205, 250, 255));
+		oldBrush = (HBRUSH)SelectObject(memDC, hBrush);
+		Rectangle(memDC,clientRECT.right/2 - 250 + bs * dropBlock.xpos, bs * edge, clientRECT.right / 2 - 200 + bs *dropBlock.xpos, bs * (edge+1));
+		SelectObject(memDC, oldBrush);
+		DeleteObject(hBrush);
+		
 		//-----------------------------------------
 		(HBITMAP)SelectObject(mem2DC, blocks[dropBlock.rotation]);
 		TransparentBlt(memDC, dropBlock.x, dropBlock.y, bs, bs, mem2DC, 0, 0, bs, bs, RGB(255, 255, 255));
